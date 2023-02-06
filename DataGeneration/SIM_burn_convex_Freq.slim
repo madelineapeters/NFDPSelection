@@ -1,0 +1,174 @@
+initialize() {
+
+	//defineConstant("alpha",5000);
+	//defineConstant("mf",0.01);
+	//defineConstant("i",1);
+	//defineConstant("x",1);
+	
+	//Population size
+	defineConstant("K",30000);
+	
+	//De novo initial allele frequency
+	//defineConstant("mfDN",1/(2*K));
+	
+	defineConstant("s",alpha/(2*K));
+
+	initializeMutationRate(1.25e-8);
+	initializeMutationType("m1",0.5,"f",0.0); //Neutral
+	initializeMutationType("m2",0.5,"f",s); //Selection
+	
+	m1.convertToSubstitution = F;
+        m2.convertToSubstitution = F;
+   
+	//One genomic element with two sequences, one neutral and one under selection
+	initializeGenomicElementType("g1",m1,1.0);
+	initializeGenomicElement(g1,1,5000);
+	//initializeGenomicElement(g1,100000burn1,1005000);
+	
+	//rho is the population recombination rate 4*K*r*L between sites L bp apart with per-base-pair crossover rate r
+	
+	//One recombination rate
+	//defineConstant("rho",0.005*alpha/(4*K*2500));
+	defineConstant("rho",3.3e-8);
+	initializeRecombinationRate(rho);
+}
+
+// Create the ancestral population
+1 { sim.addSubpop("p1", K);
+
+
+//log = sim.createLogFile("~/Desktop/PopDataProcessing/test/tmp/sim_log.txt", logInterval=10);
+//log.addGeneration();
+//log.addCustomColumn("Frequency", "sim.mutationFrequencies(p1, sim.mutationsOfType(m2));");
+
+
+}
+
+
+// Allow allele to evolve neutrally for 300k years (300000 generations with 30 year generation time)
+300000 late() {
+
+	// save the state of the simulation
+	sim.outputFull("/scratch/peter114/PopDataProcessing/SIM_VCFs/SIM_burn/tmp/slim_" + x + "_" + i + "_last.txt");
+	//sim.outputFull("~/Desktop/PopDataProcessing/test/tmp/slim_" + x + "_" + i + "_last.txt");
+	// introduce the sweep mutation
+	ind_num = asInteger(round(p1.individualCount*mf));
+	target = sample(p1.genomes,ind_num);
+	target.addNewDrawnMutation(m2, 2500);
+	
+}
+
+300000: late() {
+
+	mut = sim.mutationsOfType(m2);
+	if (size(mut) == 1)
+ 	{
+ 		if (sim.mutationFrequencies(NULL, mut) > 0.1)
+ 		{
+ 			cat("ESTABLISHED\n");
+ 			p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="/scratch/peter114/PopDataProcessing/SIM_VCFs/SIM_burn/burn_"+x+"_"+i+"_10"+"/burn_"+x+"_"+i+"_10.vcf");
+ 			//p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="~/Desktop/PopDataProcessing/test/burn_"+x+"_"+i+"_10.vcf");
+ 			sim.deregisterScriptBlock(self);
+ 		}
+ 	}
+ 	else
+ 	{
+ 		sim.readFromPopulationFile("/scratch/peter114/PopDataProcessing/SIM_VCFs/SIM_burn/tmp/slim_" + x + "_" + i + "_last.txt"); 		
+ 		//sim.readFromPopulationFile("~/Desktop/PopDataProcessing/test/tmp/slim_" + x + "_" + i + "_last.txt");
+		
+		last = sim.generation;
+		// start a newly seeded run
+		setSeed(rdunif(1,0,asInteger(2^20) - 1));
+		// re-introduce the sweep mutation
+	   ind_num = asInteger(round(p1.individualCount*mf));
+	   target = sample(p1.genomes,ind_num);
+	   target.addNewDrawnMutation(m2, 2500);
+
+		
+	} // end if statement
+}
+
+300000: late() {
+
+	mut = sim.mutationsOfType(m2);
+	if (size(mut) == 1)
+ 	{
+ 		if (sim.mutationFrequencies(NULL, mut) > 0.25)
+ 		{
+ 			p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="/scratch/peter114/PopDataProcessing/SIM_VCFs/SIM_burn/burn_"+x+"_"+i+"_25"+"/burn_"+x+"_"+i+"_25.vcf");
+ 			//p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="~/Desktop/PopDataProcessing/test/burn_"+x+"_"+i+"_25.vcf");
+ 			sim.deregisterScriptBlock(self);
+ 		}
+ 	}
+}
+300000: late() {
+
+	mut = sim.mutationsOfType(m2);
+ 	
+	if (size(mut) == 1)
+ 	{
+ 		if (sim.mutationFrequencies(NULL, mut) > 0.5)
+ 		{
+ 			p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="/scratch/peter114/PopDataProcessing/SIM_VCFs/SIM_burn/burn_"+x+"_"+i+"_50"+"/burn_"+x+"_"+i+"_50.vcf");
+ 			//p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="~/Desktop/PopDataProcessing/test/burn_"+x+"_"+i+"_50.vcf");
+ 			sim.deregisterScriptBlock(self);
+ 		}
+ 	}
+}
+300000: late() {
+
+	mut = sim.mutationsOfType(m2);
+	if (size(mut) == 1)
+ 	{ 		
+ 		if (sim.mutationFrequencies(NULL, mut) > 0.75)
+ 		{
+ 			p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="/scratch/peter114/PopDataProcessing/SIM_VCFs/SIM_burn/burn_"+x+"_"+i+"_75"+"/burn_"+x+"_"+i+"_75.vcf");
+ 			//p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="~/Desktop/PopDataProcessing/test/burn_"+x+"_"+i+"_75.vcf");
+ 			sim.deregisterScriptBlock(self);
+ 		}
+ 	}
+}
+300000: late() {
+
+	mut = sim.mutationsOfType(m2);
+	if (size(mut) == 1)
+ 	{
+ 		if (sim.mutationFrequencies(NULL, mut) > 0.95)
+ 		{
+ 			p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="/scratch/peter114/PopDataProcessing/SIM_VCFs/SIM_burn/burn_"+x+"_"+i+"_95"+"/burn_"+x+"_"+i+"_95.vcf");
+ 			//p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="~/Desktop/PopDataProcessing/test/burn_"+x+"_"+i+"_95.vcf");
+ 			sim.deregisterScriptBlock(self);
+ 		}
+ 	}
+}
+300000: late() {
+
+	mut = sim.mutationsOfType(m2);
+	if (size(mut) == 1)
+ 	{
+ 		if (sim.mutationFrequencies(NULL, mut) > 0.98)
+ 		{
+ 			p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="/scratch/peter114/PopDataProcessing/SIM_VCFs/SIM_burn/burn_"+x+"_"+i+"_98"+"/burn_"+x+"_"+i+"_98.vcf");
+ 			p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="/scratch/peter114/PopDataProcessing/SIM_VCFs/SIM_burn/burn_"+x+"_"+i+"_1"+"/burn_"+x+"_"+i+"_1.vcf");
+ 			//p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="~/Desktop/PopDataProcessing/test/burn_"+x+"_"+i+"_98.vcf");
+ 			//p1.outputVCFSample(sampleSize=200,outputMultiallelics = F,filePath="~/Desktop/PopDataProcessing/test/burn_"+x+"_"+i+"_f1.vcf");
+ 			defineConstant("genFix",sim.generation);
+ 			defineConstant("gen1000",genFix+1000);
+ 			defineConstant("gen2000",genFix+2000);
+ 			defineConstant("gen3000",genFix+3000);
+ 			defineConstant("gen4000",genFix+4000);
+ 			defineConstant("genEnd",genFix+5000);
+ 			sim.deregisterScriptBlock(self);
+ 		}
+ 	}
+
+} // end 300000: late ()
+
+325000 late() {
+
+}
+
+fitness(m2, p1) { 
+	dominance = asInteger(homozygous) * 0.5 + 0.5;
+	return 1 + s*(1-sim.mutationFrequencies(p1, mut)^(0.5))*dominance; 
+}
