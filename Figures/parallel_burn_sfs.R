@@ -46,3 +46,16 @@ hist.int = ggplot()+
   theme(strip.background = element_blank(),panel.grid = element_blank(),axis.text.y=element_text(size=12),axis.title = element_text(size=14),strip.text = element_text(size=14), legend.title = element_text(size=14), legend.text = element_text(size=14),panel.spacing = unit(1, "lines"),legend.position=c(0.7,0.8),axis.text.x=element_text(size=12),axis.ticks.x=element_blank())
 
 ggsave("~/Desktop/PopDataProcessing/SIM_VCFs/dummy/Figures/Histogram_IntSeg_full.png",plot=hist.int,width=5.5,height=5,units=c("in"),dpi=600)
+
+#### Segregating sites boxplots ####
+joint.seg.box <- joint.df |> group_by(ID,SIM) |> summarize(Count=sum(Freq))
+joint.seg.box$SIM <- factor(joint.seg.box$SIM,levels=c("constant","concave","linear","convex"),labels=c("Constant","Concave NFDP","Linear NFDP","Convex NFDP"))
+
+box.seg = ggplot()+geom_boxplot(data=joint.seg.box,aes(x=SIM,y=Count,col=SIM))+
+  labs(fill=NULL,y="Segregating sites",x="")+
+  scale_color_manual(values=colors)+
+  #scale_y_continuous(breaks=seq(5,25,5))+
+  theme_classic()+
+  theme(legend.position="none",strip.background = element_blank(),panel.grid = element_blank(),axis.text.y=element_text(size=12),axis.title = element_text(size=14),strip.text = element_text(size=14), legend.title = element_text(size=14), legend.text = element_text(size=14),panel.spacing = unit(1, "lines"),axis.text.x=element_text(size=12),axis.ticks.x=element_blank())
+
+ggsave("~/Desktop/PopDataProcessing/SIM_VCFs/dummy/Figures/BoxPlot_SegSites_full.png",plot=box.seg,width=5.5,height=5,units=c("in"),dpi=600)
